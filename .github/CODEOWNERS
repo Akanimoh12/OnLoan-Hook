@@ -1,0 +1,29 @@
+# Contract ownership
+/contracts/src/hook/           @person-a
+/contracts/src/lending/        @person-a
+/contracts/src/liquidation/    @person-a
+/contracts/src/reactive/       @person-b
+/contracts/src/oracle/         @person-a
+/contracts/src/tokens/         @person-a
+/contracts/src/interfaces/     @person-a
+/contracts/src/libraries/      @person-a
+/contracts/src/types/          @person-a
+
+# Tests
+/test/                         @person-a @person-b
+
+# Scripts
+/script/                       @person-a
+
+# Frontend
+/frontend/                     @person-c
+
+# Documentation
+/docs/                         @person-a @person-b @person-c
+
+# CI/CD
+/.github/                      @person-a
+
+# Config
+/foundry.toml                  @person-a
+/remappings.txt                @person-a

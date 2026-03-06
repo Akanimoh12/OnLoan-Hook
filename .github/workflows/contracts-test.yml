@@ -1,0 +1,44 @@
+name: Contracts Test
+
+on:
+  push:
+    paths:
+      - 'contracts/**'
+      - 'test/**'
+      - 'script/**'
+      - 'foundry.toml'
+      - 'remappings.txt'
+  pull_request:
+    paths:
+      - 'contracts/**'
+      - 'test/**'
+      - 'script/**'
+
+jobs:
+  test:
+    name: Forge Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Build
+        run: forge build
+
+      - name: Test
+        run: forge test -vvv
+
+      - name: Coverage
+        run: forge coverage --report lcov
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: lcov.info

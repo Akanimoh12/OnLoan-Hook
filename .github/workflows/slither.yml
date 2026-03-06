@@ -1,0 +1,37 @@
+name: Slither Analysis
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'contracts/**'
+
+jobs:
+  analyze:
+    name: Slither Static Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Run Slither
+        uses: crytic/slither-action@v0.4.0
+        with:
+          target: contracts/src/
+          sarif: results.sarif
+          fail-on: none
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif

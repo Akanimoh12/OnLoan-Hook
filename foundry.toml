@@ -1,0 +1,33 @@
+[profile.default]
+src = 'contracts/src'
+out = 'out'
+libs = ['contracts/lib']
+test = 'test'
+script = 'script'
+solc_version = '0.8.26'
+optimizer = true
+optimizer_runs = 10_000
+via_ir = false
+ffi = false
+fuzz = { runs = 1000, seed = '0x1' }
+invariant = { runs = 256, depth = 128 }
+gas_reports = ['OnLoanHook', 'LendingPool', 'CollateralManager', 'LiquidationEngine']
+fs_permissions = [{ access = 'read-write', path = './' }]
+
+[profile.ci]
+fuzz = { runs = 10_000 }
+invariant = { runs = 512, depth = 256 }
+
+[rpc_endpoints]
+unichain = '${UNICHAIN_RPC_URL}'
+unichain_testnet = '${UNICHAIN_TESTNET_RPC_URL}'
+reactive = '${REACTIVE_RPC_URL}'
+ethereum = '${ETHEREUM_RPC_URL}'
+
+[etherscan]
+unichain = { key = '${ETHERSCAN_API_KEY}' }
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = true

@@ -1,0 +1,31 @@
+# Foundry
+out/
+cache/
+broadcast/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+frontend/dist/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+lcov.info
+coverage/
+
+# Personal prompt files
+PROMPTS.md
