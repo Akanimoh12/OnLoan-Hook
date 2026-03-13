@@ -3,9 +3,7 @@ import { usePoolState } from '@/hooks/usePoolState';
 import { POOLS } from '@/lib/constants';
 import { Shell } from '@/components/layout/Shell';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { StatRow } from '@/components/ui/StatRow';
 import { formatTokenAmount } from '@/lib/utils';
-import { formatApr } from '@/lib/sdk';
 import { Button } from '@/components/ui/Button';
 import { Link } from 'react-router-dom';
 

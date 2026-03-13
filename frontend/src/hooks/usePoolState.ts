@@ -30,13 +30,13 @@ export function usePoolState(poolId: `0x${string}` | undefined): UsePoolStateRes
 
   let data: LendingPoolState | undefined;
   if (raw) {
-    const t = raw as readonly [bigint, bigint, bigint, bigint, bigint];
+    const r = raw as any;
     data = {
-      totalDeposited:           t[0],
-      totalBorrowed:            t[1],
-      totalShares:              t[2],
-      lastUpdateTime:           t[3],
-      accumulatedProtocolFees:  t[4],
+      totalDeposited:           r.totalDeposited !== undefined ? r.totalDeposited : r[0],
+      totalBorrowed:            r.totalBorrowed !== undefined ? r.totalBorrowed : r[1],
+      totalShares:              r.totalShares !== undefined ? r.totalShares : r[2],
+      lastUpdateTime:           r.lastUpdateTime !== undefined ? r.lastUpdateTime : r[3],
+      accumulatedProtocolFees:  r.accumulatedProtocolFees !== undefined ? r.accumulatedProtocolFees : r[4],
     };
   }
 

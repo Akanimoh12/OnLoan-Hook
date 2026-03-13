@@ -1,6 +1,7 @@
 import { useLoan } from '@/hooks/useLoan';
 import { useRepay } from '@/hooks/useRepay';
-import { formatTokenAmount, formatDuration } from '@/lib/utils';
+import { formatTokenAmount } from '@/lib/utils';
+import { formatDuration } from '@/lib/sdk';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';

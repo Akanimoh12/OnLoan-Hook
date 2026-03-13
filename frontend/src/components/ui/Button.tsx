@@ -2,12 +2,19 @@ import * as React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className = '', variant = 'primary', isLoading, children, disabled, ...props }, ref) => {
-    const base = 'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2';
+  ({ className = '', variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
+    const base = 'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 disabled:pointer-events-none disabled:opacity-50';
+    
+    const sizes = {
+      sm: 'h-8 px-3 text-xs',
+      md: 'h-10 px-4 py-2',
+      lg: 'h-12 px-6 py-3 text-base',
+    };
     
     const variants = {
       primary: 'bg-violet-600 text-white hover:bg-violet-700 active:bg-violet-800',
@@ -20,7 +27,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || isLoading}
-        className={`${base} ${variants[variant]} ${className}`}
+        className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
         {...props}
       >
         {isLoading ? (

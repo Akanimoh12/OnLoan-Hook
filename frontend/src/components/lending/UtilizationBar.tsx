@@ -1,4 +1,4 @@
-import * as React from 'react';
+
 
 export function UtilizationBar({ utilizationBps }: { utilizationBps: bigint }) {
   // Cap at 100% for the bar visual

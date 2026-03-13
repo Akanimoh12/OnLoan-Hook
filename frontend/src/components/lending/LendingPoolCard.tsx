@@ -1,5 +1,5 @@
 import { usePoolState } from '@/hooks/usePoolState';
-import { formatTokenAmount, formatUSD } from '@/lib/utils';
+import { formatTokenAmount } from '@/lib/utils';
 import { formatUtilization, formatApr } from '@/lib/sdk';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { StatRow } from '@/components/ui/StatRow';

@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 export function ErrorMessage({ message, className = '' }: { message: string | null; className?: string }) {
   if (!message) return null;
 

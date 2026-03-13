@@ -53,23 +53,18 @@ export function useLoan(borrower: `0x${string}` | undefined): UseLoanResult {
 
   let loan: Loan | undefined;
   if (rawLoan) {
-    const t = rawLoan as readonly [
-      `0x${string}`, `0x${string}`,
-      bigint, bigint, bigint, bigint,
-      bigint, bigint, bigint,
-      boolean,
-    ];
+    const r = rawLoan as any;
     loan = {
-      borrower:                  t[0],
-      collateralToken:           t[1],
-      collateralAmount:          t[2],
-      borrowedAmount:            t[3],
-      accruedInterest:           t[4],
-      interestRateAtOrigination: t[5],
-      startTime:                 t[6],
-      lastAccrualTime:           t[7],
-      duration:                  t[8],
-      active:                    t[9],
+      borrower:                  r.borrower !== undefined ? r.borrower : r[0],
+      collateralToken:           r.collateralToken !== undefined ? r.collateralToken : r[1],
+      collateralAmount:          r.collateralAmount !== undefined ? r.collateralAmount : r[2],
+      borrowedAmount:            r.borrowedAmount !== undefined ? r.borrowedAmount : r[3],
+      accruedInterest:           r.accruedInterest !== undefined ? r.accruedInterest : r[4],
+      interestRateAtOrigination: r.interestRateAtOrigination !== undefined ? r.interestRateAtOrigination : r[5],
+      startTime:                 r.startTime !== undefined ? r.startTime : r[6],
+      lastAccrualTime:           r.lastAccrualTime !== undefined ? r.lastAccrualTime : r[7],
+      duration:                  r.duration !== undefined ? r.duration : r[8],
+      active:                    r.active !== undefined ? r.active : r[9],
     };
   }
 

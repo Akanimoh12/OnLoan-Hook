@@ -1,5 +1,5 @@
 import { useLiquidations } from '@/hooks/useLiquidations';
-import { shortenAddress, formatUSD } from '@/lib/utils';
+import { shortenAddress } from '@/lib/utils';
 import { formatHealthFactor } from '@/lib/sdk';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';

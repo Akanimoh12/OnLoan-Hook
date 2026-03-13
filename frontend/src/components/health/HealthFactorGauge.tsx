@@ -1,7 +1,6 @@
-import * as React from 'react';
+
 import { getHealthStatus, formatHealthFactor, healthFactorToFloat } from '@/lib/sdk';
 import { Card, CardContent } from '@/components/ui/Card';
-import { StatRow } from '@/components/ui/StatRow';
 
 interface HealthFactorGaugeProps {
   healthFactor: bigint;

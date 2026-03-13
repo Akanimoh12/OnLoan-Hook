@@ -13,6 +13,12 @@ export const CONTRACTS = {
   poolManager:       '' as `0x${string}`,
 } as const;
 
+// Hardcoded Pool IDs for MVP integration
+export const POOLS = {
+  USDC: '0x0000000000000000000000000000000000000000000000000000000000000001' as `0x${string}`,
+  WETH: '0x0000000000000000000000000000000000000000000000000000000000000002' as `0x${string}`,
+} as const;
+
 // Health factor thresholds — stored as BPS (1.0 = 10_000)
 export const HF_LIQUIDATION_THRESHOLD = 10_000n;
 export const HF_DANGER_THRESHOLD      = 12_000n;
