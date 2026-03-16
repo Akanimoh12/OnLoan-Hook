@@ -10,7 +10,7 @@ export const CONTRACTS = {
   liquidationEngine: '0x9E2f28b4f68F01b4B56BEFc6047018362EBD91F6' as `0x${string}`,
   receiptToken:      '0xEAE3b6033d744b8E0e817269df92004F3069bfB1' as `0x${string}`,
   // Populated once the PoolManager address is confirmed from the Uniswap v4 deployment
-  poolManager:       '' as `0x${string}`,
+  poolManager:       '0x000000000004444c5dc75cB358380D2e3dE08A90' as `0x${string}`,
 } as const;
 
 // Hardcoded Pool IDs for MVP integration
