@@ -1,4 +1,4 @@
-import { useReadContract } from 'wagmi';
+import { useReadContract, useReadContracts } from 'wagmi';
 import { CONTRACTS, BLOCK_TIME_MS, HF_LIQUIDATION_THRESHOLD, HF_WARNING_THRESHOLD } from '@/lib/constants';
 import { LoanManagerAbi, OnLoanHookAbi } from '@/lib/abis';
 import { getHealthStatus } from '@/lib/sdk';
@@ -35,27 +35,32 @@ export function useLiquidations(): UseLiquidationsResult {
 
   const borrowers = (rawBorrowers as `0x${string}`[] | undefined) ?? [];
 
-  // Read health factors for the first borrower as a sequential pattern.
-  // In production this is replaced with a multicall. For now, reading the
-  // first borrower lets us demonstrate the pattern.
+  // Multicall to read health factors for all active borrowers
   const {
-    data: rawHF,
+    data: healthFactorsData,
     isLoading: loadingHF,
     isError: errorHF,
-  } = useReadContract({
-    address: CONTRACTS.onLoanHook,
-    abi: OnLoanHookAbi,
-    functionName: 'getHealthFactor',
-    args: borrowers.length > 0 ? [borrowers[0]] : undefined,
+  } = useReadContracts({
+    contracts: borrowers.map((borrower) => ({
+      address: CONTRACTS.onLoanHook,
+      abi: OnLoanHookAbi,
+      functionName: 'getHealthFactor',
+      args: [borrower],
+    })),
     query: {
       enabled: borrowers.length > 0,
       refetchInterval: BLOCK_TIME_MS * 15,
     },
   });
 
-  // Build risk rows from available data — expandable to multicall in integration phase
+  // Build risk rows from available data
   const rows: BorrowerRiskRow[] = borrowers.map((address, index) => {
-    const hf = index === 0 && rawHF ? (rawHF as bigint) : HF_WARNING_THRESHOLD;
+    // Return early if multicall hasn't completed or reverted for this borrower
+    const hfResult = healthFactorsData && healthFactorsData[index];
+    const hf = hfResult?.status === 'success' && hfResult.result !== undefined 
+        ? (hfResult.result as bigint) 
+        : HF_WARNING_THRESHOLD;
+
     return {
       address,
       healthFactor: hf,
