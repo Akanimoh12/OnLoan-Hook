@@ -1,7 +1,7 @@
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { CONTRACTS } from '@/lib/constants';
-import { OnLoanHookAbi } from '@/lib/abis';
+import { PoolManagerAbi } from '@/lib/abis';
 import { encodeBorrowPayload } from '@/lib/sdk';
 import { daysToSeconds } from '@/lib/utils';
 import type { BorrowFormState } from '@/types';
@@ -54,19 +54,36 @@ export function useBorrow(): UseBorrowResult {
       durationSeconds,
     );
 
+    // Hardcoded PoolKey for the MVP integration (USDC/WETH pair)
+    // We assume currency0 is USDC and currency1 is WETH for demonstration.
+    // In a production environment with multiple pools, this would be computed
+    // dynamically based on token addresses.
+    const currency0 = '0x7F3974B5503c99A184122a6a4C1CF884F5c64Fb6' as `0x${string}`; // USDC
+    const currency1 = '0x8B1fbcB9268BB5Ad85c6026C848A5d8Bf7D7888D' as `0x${string}`; // WETH
+
+    const poolKey = {
+      currency0,
+      currency1,
+      fee: 3000,
+      tickSpacing: 60,
+      hooks: CONTRACTS.onLoanHook,
+    };
+
+    // Swap parameters for a zero-amount swap
+    const swapParams = {
+      zeroForOne: true,
+      amountSpecified: 0n,
+      sqrtPriceLimitX96: 0n, // Unused in zero-amount swaps, but required by struct
+    };
+
     // The borrow is initiated as swap hookData via the OnLoanHook.
     // The swap itself is a zero-amount swap; hookData carries the loan parameters.
     writeContract({
-      address: CONTRACTS.onLoanHook,
-      abi: OnLoanHookAbi,
-      functionName: 'liquidateLoan', // placeholder — actual call goes through PoolManager swap
-      args: [borrower],
-      // NOTE: In production, the frontend dispatches a PoolManager.swap() call
-      // with hookData attached. This requires the PoolKey. Update args when
-      // PoolKey is confirmed.
+      address: CONTRACTS.poolManager,
+      abi: PoolManagerAbi,
+      functionName: 'swap',
+      args: [poolKey, swapParams, hookData],
     });
-
-    void hookData; // hookData is encoded but swap dispatch requires PoolKey from Person A
   };
 
   const errorMessage = writeError

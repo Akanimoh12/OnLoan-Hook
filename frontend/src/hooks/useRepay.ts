@@ -1,7 +1,7 @@
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { CONTRACTS } from '@/lib/constants';
-import { OnLoanHookAbi } from '@/lib/abis';
+import { PoolManagerAbi } from '@/lib/abis';
 import { encodeRepayPayload } from '@/lib/sdk';
 
 interface UseRepayResult {
@@ -38,16 +38,26 @@ export function useRepay(): UseRepayResult {
   const repay = (borrower: `0x${string}`) => {
     const hookData = encodeRepayPayload(borrower);
 
-    // Repayment is submitted as a donate call through the PoolManager
-    // with hookData. Update args to PoolManager.donate() when PoolKey is confirmed.
-    writeContract({
-      address: CONTRACTS.onLoanHook,
-      abi: OnLoanHookAbi,
-      functionName: 'liquidateLoan', // placeholder — swap over to PoolManager.donate in integration
-      args: [borrower],
-    });
+    // Hardcoded PoolKey for the MVP integration (USDC/WETH pair)
+    const currency0 = '0x7F3974B5503c99A184122a6a4C1CF884F5c64Fb6' as `0x${string}`; // USDC
+    const currency1 = '0x8B1fbcB9268BB5Ad85c6026C848A5d8Bf7D7888D' as `0x${string}`; // WETH
 
-    void hookData; // hookData is ready; dispatch requires PoolKey from Person A
+    const poolKey = {
+      currency0,
+      currency1,
+      fee: 3000,
+      tickSpacing: 60,
+      hooks: CONTRACTS.onLoanHook,
+    };
+
+    // Repayment is submitted as a zero-amount donate call through the PoolManager
+    // with hookData to trigger beforeDonate/afterDonate on the OnLoanHook.
+    writeContract({
+      address: CONTRACTS.poolManager,
+      abi: PoolManagerAbi,
+      functionName: 'donate',
+      args: [poolKey, 0n, 0n, hookData],
+    });
   };
 
   const errorMessage = writeError

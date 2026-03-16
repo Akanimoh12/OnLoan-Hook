@@ -9,8 +9,8 @@ import type { BorrowFormState } from '@/types';
 
 // Hardcoded for demo MVP; in reality fetched from CollateralManager
 const SUPPORTED_COLLATERAL = [
-  { address: '0x123...abc', symbol: 'WETH', decimals: 18 },
-  { address: '0x456...def', symbol: 'WBTC', decimals: 8 },
+  { address: '0x8B1fbcB9268BB5Ad85c6026C848A5d8Bf7D7888D', symbol: 'WETH', decimals: 18 },
+  { address: '0x092b70f07F374A698F53f062E69d194F74F29831', symbol: 'WBTC', decimals: 8 },
 ];
 
 export function BorrowForm({ poolId }: { poolId: `0x${string}` }) {
