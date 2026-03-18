@@ -1,5 +1,6 @@
 import { useLiquidations } from '@/hooks/useLiquidations';
-import { shortenAddress } from '@/lib/utils';
+import { useLiquidate } from '@/hooks/useLiquidate';
+import { shortenAddress, formatTokenAmount } from '@/lib/utils';
 import { formatHealthFactor } from '@/lib/sdk';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -8,6 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 
 export function LiquidationTable() {
   const { all, isLoading, isError, refetch } = useLiquidations();
+  const { liquidate, isPending: isLiquidating, targetBorrower } = useLiquidate();
 
   if (isError) {
     return (
@@ -70,13 +72,15 @@ export function LiquidationTable() {
                     {shortenAddress(row.address)}
                   </a>
                 </td>
-                <td className="px-6 py-4 text-right">
-                  {/* Pending RiskEngine values */}
-                  <span className="text-slate-500 italic">Integration Pending</span>
+                <td className="px-6 py-4 text-right font-mono">
+                  {row.collateralValueUSD > 0n
+                    ? `$${formatTokenAmount(row.collateralValueUSD, 8, '')}`
+                    : <span className="text-slate-500">--</span>}
                 </td>
-                <td className="px-6 py-4 text-right">
-                  {/* Pending RiskEngine values */}
-                  <span className="text-slate-500 italic">Integration Pending</span>
+                <td className="px-6 py-4 text-right font-mono">
+                  {row.debtValueUSD > 0n
+                    ? `$${formatTokenAmount(row.debtValueUSD, 8, '')}`
+                    : <span className="text-slate-500">--</span>}
                 </td>
                 <td className="px-6 py-4 text-center">
                   <div className="flex flex-col items-center">
@@ -98,7 +102,9 @@ export function LiquidationTable() {
                 <td className="px-6 py-4 text-right">
                   <Button 
                     variant={row.status === 'liquidatable' ? 'primary' : 'secondary'}
-                    disabled={row.status !== 'liquidatable'}
+                    disabled={row.status !== 'liquidatable' || isLiquidating}
+                    isLoading={isLiquidating && targetBorrower === row.address}
+                    onClick={() => liquidate(row.address)}
                   >
                     Liquidate
                   </Button>

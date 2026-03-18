@@ -1,0 +1,125 @@
+[
+  {
+    "type": "function",
+    "name": "assessRisk",
+    "inputs": [
+      { "name": "borrower", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      {
+        "name": "result",
+        "type": "tuple",
+        "internalType": "struct RiskEngine.RiskAssessment",
+        "components": [
+          { "name": "borrower", "type": "address", "internalType": "address" },
+          { "name": "healthFactor", "type": "uint256", "internalType": "uint256" },
+          { "name": "collateralValueUSD", "type": "uint256", "internalType": "uint256" },
+          { "name": "debtValueUSD", "type": "uint256", "internalType": "uint256" },
+          { "name": "liquidationThreshold", "type": "uint256", "internalType": "uint256" },
+          { "name": "isLiquidatable", "type": "bool", "internalType": "bool" },
+          { "name": "isExpired", "type": "bool", "internalType": "bool" },
+          { "name": "isWarning", "type": "bool", "internalType": "bool" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "batchAssessRisk",
+    "inputs": [
+      { "name": "borrowers", "type": "address[]", "internalType": "address[]" }
+    ],
+    "outputs": [
+      {
+        "name": "results",
+        "type": "tuple[]",
+        "internalType": "struct RiskEngine.RiskAssessment[]",
+        "components": [
+          { "name": "borrower", "type": "address", "internalType": "address" },
+          { "name": "healthFactor", "type": "uint256", "internalType": "uint256" },
+          { "name": "collateralValueUSD", "type": "uint256", "internalType": "uint256" },
+          { "name": "debtValueUSD", "type": "uint256", "internalType": "uint256" },
+          { "name": "liquidationThreshold", "type": "uint256", "internalType": "uint256" },
+          { "name": "isLiquidatable", "type": "bool", "internalType": "bool" },
+          { "name": "isExpired", "type": "bool", "internalType": "bool" },
+          { "name": "isWarning", "type": "bool", "internalType": "bool" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAtRiskLoans",
+    "inputs": [
+      { "name": "warningThresholdBps", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "borrowers", "type": "address[]", "internalType": "address[]" },
+      { "name": "healthFactors", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "simulatePriceImpact",
+    "inputs": [
+      { "name": "token", "type": "address", "internalType": "address" },
+      { "name": "newPrice", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple[]",
+        "internalType": "struct RiskEngine.StressResult[]",
+        "components": [
+          { "name": "borrower", "type": "address", "internalType": "address" },
+          { "name": "currentHealthFactor", "type": "uint256", "internalType": "uint256" },
+          { "name": "stressedHealthFactor", "type": "uint256", "internalType": "uint256" },
+          { "name": "wouldBeLiquidatable", "type": "bool", "internalType": "bool" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "simulateMarketCrash",
+    "inputs": [
+      { "name": "dropPercentageBps", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple[]",
+        "internalType": "struct RiskEngine.StressResult[]",
+        "components": [
+          { "name": "borrower", "type": "address", "internalType": "address" },
+          { "name": "currentHealthFactor", "type": "uint256", "internalType": "uint256" },
+          { "name": "stressedHealthFactor", "type": "uint256", "internalType": "uint256" },
+          { "name": "wouldBeLiquidatable", "type": "bool", "internalType": "bool" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "warningThreshold",
+    "inputs": [],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "criticalThreshold",
+    "inputs": [],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  }
+]

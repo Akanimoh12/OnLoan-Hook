@@ -1,0 +1,74 @@
+[
+  {
+    "type": "function",
+    "name": "getInterestRate",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "internalType": "PoolId" },
+      { "name": "utilization", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getUtilizationRate",
+    "inputs": [
+      { "name": "totalDeposited", "type": "uint256", "internalType": "uint256" },
+      { "name": "totalBorrowed", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "getBorrowRate",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "internalType": "PoolId" },
+      { "name": "totalDeposited", "type": "uint256", "internalType": "uint256" },
+      { "name": "totalBorrowed", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getSupplyRate",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "internalType": "PoolId" },
+      { "name": "totalDeposited", "type": "uint256", "internalType": "uint256" },
+      { "name": "totalBorrowed", "type": "uint256", "internalType": "uint256" },
+      { "name": "protocolFeeBps", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getRateConfig",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "internalType": "PoolId" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct InterestRateModel.InterestRateConfig",
+        "components": [
+          { "name": "baseRate", "type": "uint256", "internalType": "uint256" },
+          { "name": "kinkRate", "type": "uint256", "internalType": "uint256" },
+          { "name": "maxRate", "type": "uint256", "internalType": "uint256" },
+          { "name": "kinkUtilization", "type": "uint256", "internalType": "uint256" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  }
+]

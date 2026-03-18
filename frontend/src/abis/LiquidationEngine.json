@@ -1,0 +1,48 @@
+[
+  {
+    "type": "function",
+    "name": "liquidateLoan",
+    "inputs": [
+      { "name": "borrower", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "isLiquidatable",
+    "inputs": [
+      { "name": "borrower", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      { "name": "", "type": "bool", "internalType": "bool" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getLiquidationInfo",
+    "inputs": [
+      { "name": "borrower", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      { "name": "healthFactor", "type": "uint256", "internalType": "uint256" },
+      { "name": "debtUSD", "type": "uint256", "internalType": "uint256" },
+      { "name": "collateralUSD", "type": "uint256", "internalType": "uint256" },
+      { "name": "bonus", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "LoanLiquidated",
+    "inputs": [
+      { "name": "borrower", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "liquidator", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "collateralSeized", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "debtRepaid", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "liquidationBonus", "type": "uint256", "indexed": false, "internalType": "uint256" }
+    ],
+    "anonymous": false
+  }
+]

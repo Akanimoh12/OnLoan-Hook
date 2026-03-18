@@ -1,5 +1,5 @@
 import { useReadContract } from 'wagmi';
-import { CONTRACTS, BLOCK_TIME_MS } from '@/lib/constants';
+import { CONTRACTS } from '@/lib/constants';
 import { LendingPoolAbi } from '@/lib/abis';
 import type { LendingPoolState } from '@/types';
 
@@ -24,7 +24,7 @@ export function usePoolState(poolId: `0x${string}` | undefined): UsePoolStateRes
     args: poolId ? [poolId] : undefined,
     query: {
       enabled,
-      refetchInterval: BLOCK_TIME_MS * 6, // Refresh every ~6 blocks (12s)
+      refetchInterval: 30_000,
     },
   });
 

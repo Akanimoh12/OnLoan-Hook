@@ -1,8 +1,8 @@
-import { useReadContract, useReadContracts } from 'wagmi';
+import { useReadContract } from 'wagmi';
 import { CONTRACTS, BLOCK_TIME_MS, HF_LIQUIDATION_THRESHOLD, HF_WARNING_THRESHOLD } from '@/lib/constants';
-import { LoanManagerAbi, OnLoanHookAbi } from '@/lib/abis';
+import { LoanManagerAbi, RiskEngineAbi } from '@/lib/abis';
 import { getHealthStatus } from '@/lib/sdk';
-import type { BorrowerRiskRow } from '@/types';
+import type { BorrowerRiskRow, RiskAssessment } from '@/types';
 
 interface UseLiquidationsResult {
   liquidatable: BorrowerRiskRow[];
@@ -14,9 +14,8 @@ interface UseLiquidationsResult {
 }
 
 /**
- * Fetches all active borrowers from LoanManager, reads their health factors,
- * and classifies them into liquidatable and at-risk buckets.
- * Refreshes every 30 seconds.
+ * Fetches all active borrowers from LoanManager, then uses RiskEngine.batchAssessRisk() 
+ * to get full risk data (health factor, collateral/debt USD) for each borrower.
  */
 export function useLiquidations(): UseLiquidationsResult {
   const {
@@ -35,38 +34,37 @@ export function useLiquidations(): UseLiquidationsResult {
 
   const borrowers = (rawBorrowers as `0x${string}`[] | undefined) ?? [];
 
-  // Multicall to read health factors for all active borrowers
+  // Use RiskEngine.batchAssessRisk() to get full risk data for all borrowers
   const {
-    data: healthFactorsData,
-    isLoading: loadingHF,
-    isError: errorHF,
-  } = useReadContracts({
-    contracts: borrowers.map((borrower) => ({
-      address: CONTRACTS.onLoanHook,
-      abi: OnLoanHookAbi,
-      functionName: 'getHealthFactor',
-      args: [borrower],
-    })),
+    data: rawAssessments,
+    isLoading: loadingRisk,
+    isError: errorRisk,
+  } = useReadContract({
+    address: CONTRACTS.riskEngine,
+    abi: RiskEngineAbi,
+    functionName: 'batchAssessRisk',
+    args: borrowers.length > 0 ? [borrowers] : undefined,
     query: {
       enabled: borrowers.length > 0,
       refetchInterval: BLOCK_TIME_MS * 15,
     },
   });
 
-  // Build risk rows from available data
+  const assessments = (rawAssessments as RiskAssessment[] | undefined) ?? [];
+
+  // Build risk rows from RiskEngine data
   const rows: BorrowerRiskRow[] = borrowers.map((address, index) => {
-    // Return early if multicall hasn't completed or reverted for this borrower
-    const hfResult = healthFactorsData && healthFactorsData[index];
-    const hf = hfResult?.status === 'success' && hfResult.result !== undefined 
-        ? (hfResult.result as bigint) 
-        : HF_WARNING_THRESHOLD;
+    const a = assessments[index];
+    const hf = a?.healthFactor ?? HF_WARNING_THRESHOLD;
 
     return {
       address,
       healthFactor: hf,
       status: getHealthStatus(hf),
-      collateralValueUSD: 0n, // Populated via RiskEngine.assessRisk() in integration phase
-      debtValueUSD: 0n,       // Populated via RiskEngine.assessRisk() in integration phase
+      collateralValueUSD: a?.collateralValueUSD ?? 0n,
+      debtValueUSD: a?.debtValueUSD ?? 0n,
+      isLiquidatable: a?.isLiquidatable ?? false,
+      isExpired: a?.isExpired ?? false,
     };
   });
 
@@ -81,8 +79,8 @@ export function useLiquidations(): UseLiquidationsResult {
     liquidatable,
     atRisk,
     all: rows,
-    isLoading: loadingBorrowers || loadingHF,
-    isError: errorBorrowers || errorHF,
+    isLoading: loadingBorrowers || loadingRisk,
+    isError: errorBorrowers || errorRisk,
     refetch,
   };
 }

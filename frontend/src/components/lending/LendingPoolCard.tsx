@@ -1,4 +1,5 @@
 import { usePoolState } from '@/hooks/usePoolState';
+import { useInterestRates } from '@/hooks/useInterestRates';
 import { formatTokenAmount } from '@/lib/utils';
 import { formatUtilization, formatApr } from '@/lib/sdk';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
@@ -14,6 +15,7 @@ interface LendingPoolCardProps {
 
 export function LendingPoolCard({ poolId, assetSymbol, decimals }: LendingPoolCardProps) {
   const { data: state, isLoading, isError } = usePoolState(poolId);
+  const { borrowRateBps, supplyRateBps, utilizationBps: liveUtilBps } = useInterestRates(poolId);
 
   if (isError) {
     return (
@@ -40,16 +42,14 @@ export function LendingPoolCard({ poolId, assetSymbol, decimals }: LendingPoolCa
     );
   }
 
-  // Derive utilization: totalBorrowed / totalDeposited
-  // In a real integration, the hook reads `getUtilizationRate()` directly from the contract.
-  // For the MVP, we compute it purely for display if not fetching the raw rate.
-  const utilizationBps = state.totalDeposited > 0n 
-    ? (state.totalBorrowed * 10_000n) / state.totalDeposited 
-    : 0n;
+  // Prefer live utilization from contract; fallback to computed
+  const utilizationBps = liveUtilBps > 0n ? liveUtilBps
+    : state.totalDeposited > 0n 
+      ? (state.totalBorrowed * 10_000n) / state.totalDeposited 
+      : 0n;
 
-  // Placeholder static APR until InterestRateModel integration is complete
-  const borrowAprBps = 1200n; // 12%
-  const supplyAprBps = 950n;  // 9.5%
+  const borrowAprBps = borrowRateBps;
+  const supplyAprBps = supplyRateBps;
 
   const availableLiquidity = state.totalDeposited - state.totalBorrowed;
 

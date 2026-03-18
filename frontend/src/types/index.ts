@@ -114,6 +114,8 @@ export interface BorrowerRiskRow {
   status: HealthStatus;
   collateralValueUSD: bigint;
   debtValueUSD: bigint;
+  isLiquidatable: boolean;
+  isExpired: boolean;
 }
 
 /** Notification toast payload. */

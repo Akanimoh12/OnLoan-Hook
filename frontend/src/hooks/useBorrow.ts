@@ -1,6 +1,6 @@
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
-import { CONTRACTS } from '@/lib/constants';
+import { CONTRACTS, DEFAULT_POOL_KEY } from '@/lib/constants';
 import { PoolManagerAbi } from '@/lib/abis';
 import { encodeBorrowPayload } from '@/lib/sdk';
 import { daysToSeconds } from '@/lib/utils';
@@ -54,19 +54,13 @@ export function useBorrow(): UseBorrowResult {
       durationSeconds,
     );
 
-    // Hardcoded PoolKey for the MVP integration (USDC/WETH pair)
-    // We assume currency0 is USDC and currency1 is WETH for demonstration.
-    // In a production environment with multiple pools, this would be computed
-    // dynamically based on token addresses.
-    const currency0 = '0x7F3974B5503c99A184122a6a4C1CF884F5c64Fb6' as `0x${string}`; // USDC
-    const currency1 = '0x8B1fbcB9268BB5Ad85c6026C848A5d8Bf7D7888D' as `0x${string}`; // WETH
-
+    // Use the centralized pool key configuration
     const poolKey = {
-      currency0,
-      currency1,
-      fee: 3000,
-      tickSpacing: 60,
-      hooks: CONTRACTS.onLoanHook,
+      currency0: DEFAULT_POOL_KEY.currency0,
+      currency1: DEFAULT_POOL_KEY.currency1,
+      fee: DEFAULT_POOL_KEY.fee,
+      tickSpacing: DEFAULT_POOL_KEY.tickSpacing,
+      hooks: DEFAULT_POOL_KEY.hooks,
     };
 
     // Swap parameters for a zero-amount swap

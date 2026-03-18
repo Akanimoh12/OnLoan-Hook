@@ -1,5 +1,5 @@
 import { useReadContract } from 'wagmi';
-import { CONTRACTS, BLOCK_TIME_MS } from '@/lib/constants';
+import { CONTRACTS } from '@/lib/constants';
 import { OnLoanHookAbi } from '@/lib/abis';
 import type { Loan } from '@/types';
 
@@ -32,7 +32,7 @@ export function useLoan(borrower: `0x${string}` | undefined): UseLoanResult {
     args: borrower ? [borrower] : undefined,
     query: {
       enabled,
-      refetchInterval: BLOCK_TIME_MS * 6,
+      refetchInterval: 30_000,
     },
   });
 
@@ -47,7 +47,7 @@ export function useLoan(borrower: `0x${string}` | undefined): UseLoanResult {
     args: borrower ? [borrower] : undefined,
     query: {
       enabled,
-      refetchInterval: BLOCK_TIME_MS * 6,
+      refetchInterval: 30_000,
     },
   });
 
