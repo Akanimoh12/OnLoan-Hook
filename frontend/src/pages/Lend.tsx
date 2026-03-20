@@ -20,7 +20,7 @@ export function Lend() {
   const [depositAmt, setDepositAmt] = React.useState('');
   const [withdrawAmt, setWithdrawAmt] = React.useState('');
 
-  const { deposit, needsApproval, approve, isPending: isDepositing, isApproving, error: depError } = useDeposit();
+  const { deposit, isPending: isDepositing, isApproving, error: depError } = useDeposit();
   const { withdraw, canWithdraw, isPending: isWithdrawing, error: wdError } = useWithdraw(POOLS.USDC);
   const { shares, isLoading: loadingShares } = useUserShares(POOLS.USDC);
   const { supplyRateBps, utilizationBps } = useInterestRates(POOLS.USDC);
