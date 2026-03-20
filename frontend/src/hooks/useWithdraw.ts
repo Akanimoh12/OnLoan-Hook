@@ -2,7 +2,7 @@ import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 
 import { useQueryClient } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
 import { CONTRACTS, BLOCK_TIME_MS } from '@/lib/constants';
-import { LendingPoolAbi } from '@/lib/abis';
+import { LendingPoolAbi, OnLoanHookAbi } from '@/lib/abis';
 
 interface UseWithdrawResult {
   withdraw: (poolId: `0x${string}`, shares: bigint) => void;
@@ -14,7 +14,7 @@ interface UseWithdrawResult {
 
 /**
  * Checks LendingPool.canWithdraw(poolId, lender) before exposing the withdraw action.
- * Surfaces a human-readable error if the cooldown has not elapsed.
+ * Calls OnLoanHook.withdrawDirect(poolId, shares) to return tokens to the user.
  */
 export function useWithdraw(poolId: `0x${string}` | undefined): UseWithdrawResult {
   const queryClient = useQueryClient();
@@ -56,10 +56,10 @@ export function useWithdraw(poolId: `0x${string}` | undefined): UseWithdrawResul
     if (!canWithdraw) return;
     if (shares === 0n || !address) return;
     writeContract({
-      address: CONTRACTS.lendingPool,
-      abi: LendingPoolAbi,
-      functionName: 'withdraw',
-      args: [poolId, address, shares],
+      address: CONTRACTS.onLoanHook,
+      abi: OnLoanHookAbi,
+      functionName: 'withdrawDirect',
+      args: [poolId, shares],
     });
   };
 

@@ -20,7 +20,7 @@ export function Lend() {
   const [depositAmt, setDepositAmt] = React.useState('');
   const [withdrawAmt, setWithdrawAmt] = React.useState('');
 
-  const { deposit, isPending: isDepositing, error: depError } = useDeposit();
+  const { deposit, needsApproval, approve, isPending: isDepositing, isApproving, error: depError } = useDeposit();
   const { withdraw, canWithdraw, isPending: isWithdrawing, error: wdError } = useWithdraw(POOLS.USDC);
   const { shares, isLoading: loadingShares } = useUserShares(POOLS.USDC);
   const { supplyRateBps, utilizationBps } = useInterestRates(POOLS.USDC);
@@ -124,10 +124,10 @@ export function Lend() {
                 className="w-full" 
                 size="lg"
                 disabled={!address || depParsed === 0n}
-                isLoading={isDepositing}
-                onClick={() => address && deposit(POOLS.USDC, address, depParsed)}
+                isLoading={isDepositing || isApproving}
+                onClick={() => address && deposit(POOLS.USDC, depParsed)}
               >
-                {!address ? 'Connect Wallet' : 'Supply Assets'}
+                {!address ? 'Connect Wallet' : isApproving ? 'Approving USDC...' : 'Supply Assets'}
               </Button>
             </CardContent>
           </Card>

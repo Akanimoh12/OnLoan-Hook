@@ -3,6 +3,7 @@ pragma solidity ^0.8.26;
 
 import "forge-std/Script.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
+import {PoolId} from "@uniswap/v4-core/src/types/PoolId.sol";
 import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
 import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 
@@ -15,6 +16,7 @@ import {LoanManager} from "../../contracts/src/lending/LoanManager.sol";
 import {LiquidationEngine} from "../../contracts/src/liquidation/LiquidationEngine.sol";
 import {OnLoanHook} from "../../contracts/src/hook/OnLoanHook.sol";
 import {CollateralInfo} from "../../contracts/src/types/LoanTypes.sol";
+import {PoolConfig, InterestRateConfig} from "../../contracts/src/types/PoolTypes.sol";
 import {HookMiner} from "../utils/HookMiner.s.sol";
 
 contract DeployOnLoan is Script {
@@ -68,6 +70,21 @@ contract DeployOnLoan is Script {
         );
         console.log("LiquidationEngine:", address(liquidationEngine));
 
+        _deployHook(poolManagerAddr, deployer);
+
+        _configureAuthorization();
+        _initializePools();
+        _configureCollateral(wethAddr, wbtcAddr);
+        _configureLiquidator(rscLiquidator);
+
+        vm.stopBroadcast();
+
+        _writeAddresses();
+
+        console.log("--- Deployment Complete ---");
+    }
+
+    function _deployHook(address poolManagerAddr, address deployer) internal {
         bytes memory constructorArgs = abi.encode(
             IPoolManager(poolManagerAddr),
             address(lendingPool),
@@ -75,7 +92,8 @@ contract DeployOnLoan is Script {
             address(collateralManager),
             address(liquidationEngine),
             address(priceOracle),
-            address(receiptToken)
+            address(receiptToken),
+            deployer
         );
 
         (address hookAddr, bytes32 salt) = HookMiner.find(
@@ -95,26 +113,18 @@ contract DeployOnLoan is Script {
             address(collateralManager),
             address(liquidationEngine),
             address(priceOracle),
-            address(receiptToken)
+            address(receiptToken),
+            deployer
         );
 
         require(address(hook) == hookAddr, "Hook address mismatch");
         console.log("OnLoanHook:", address(hook));
         console.log("---");
-
-        _configureAuthorization();
-        _configureCollateral(wethAddr, wbtcAddr);
-        _configureLiquidator(rscLiquidator);
-
-        vm.stopBroadcast();
-
-        _writeAddresses();
-
-        console.log("--- Deployment Complete ---");
     }
 
     function _configureAuthorization() internal {
         lendingPool.setHook(address(hook));
+        lendingPool.setAuthorized(address(hook), true);
         lendingPool.setAuthorized(address(loanManager), true);
         lendingPool.setAuthorized(address(liquidationEngine), true);
 
@@ -128,7 +138,36 @@ contract DeployOnLoan is Script {
         loanManager.setHook(address(hook));
         loanManager.setLiquidationEngine(address(liquidationEngine));
 
+        // Configure deposit tokens for direct deposit/withdraw
+        address usdcAddr = vm.envOr("USDC_ADDRESS", address(0));
+        if (usdcAddr != address(0)) {
+            hook.setPoolDepositToken(
+                PoolId.wrap(bytes32(uint256(1))),
+                usdcAddr
+            );
+            console.log("USDC deposit token configured for pool 1");
+        }
+
         console.log("Authorization configured");
+    }
+
+    function _initializePools() internal {
+        PoolConfig memory usdcConfig = PoolConfig({
+            interestRateConfig: InterestRateConfig({
+                baseRate: 200,
+                kinkRate: 1000,
+                maxRate: 2000,
+                kinkUtilization: 8000
+            }),
+            protocolFeeRate: 1000,
+            minLoanDuration: 1 days,
+            maxLoanDuration: 365 days,
+            withdrawalCooldown: 1 days,
+            isActive: true
+        });
+
+        lendingPool.initializePool(PoolId.wrap(bytes32(uint256(1))), usdcConfig);
+        console.log("USDC pool (ID=1) initialized");
     }
 
     function _configureCollateral(address wethAddr, address wbtcAddr) internal {

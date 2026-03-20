@@ -14,6 +14,8 @@ import {StateLibrary} from "@uniswap/v4-core/src/libraries/StateLibrary.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {LendingPoolState, PoolConfig, InterestRateConfig} from "../types/PoolTypes.sol";
 import {Loan} from "../types/LoanTypes.sol";
@@ -32,6 +34,7 @@ contract OnLoanHook is IHooks, HookPermissions, Ownable, ReentrancyGuard {
     using PoolIdLibrary for PoolKey;
     using StateLibrary for IPoolManager;
     using BalanceDeltaLibrary for BalanceDelta;
+    using SafeERC20 for IERC20;
 
     IPoolManager public immutable poolManager;
     ILendingPool public lendingPool;
@@ -42,6 +45,7 @@ contract OnLoanHook is IHooks, HookPermissions, Ownable, ReentrancyGuard {
     LendingReceipt6909 public receiptToken;
 
     mapping(PoolId => bool) public isOnLoanPool;
+    mapping(PoolId => address) public poolDepositToken;
 
     bytes1 private constant BORROW_FLAG = 0x01;
     bytes1 private constant REPAY_FLAG = 0x02;
@@ -67,8 +71,9 @@ contract OnLoanHook is IHooks, HookPermissions, Ownable, ReentrancyGuard {
         address _collateralManager,
         address _liquidationEngine,
         address _priceOracle,
-        address _receiptToken
-    ) Ownable(msg.sender) {
+        address _receiptToken,
+        address _owner
+    ) Ownable(_owner) {
         poolManager = _poolManager;
         lendingPool = ILendingPool(_lendingPool);
         loanManager = ILoanManager(_loanManager);
@@ -305,6 +310,30 @@ contract OnLoanHook is IHooks, HookPermissions, Ownable, ReentrancyGuard {
     function liquidateLoan(address borrower) external {
         liquidationEngine.liquidateLoan(borrower);
     }
+
+    // --- Direct deposit/withdraw (bypasses V4 modifyLiquidity) ---
+
+    function setPoolDepositToken(PoolId poolId, address token) external onlyOwner {
+        poolDepositToken[poolId] = token;
+    }
+
+    function depositDirect(PoolId poolId, uint256 amount) external nonReentrant returns (uint256 shares) {
+        address token = poolDepositToken[poolId];
+        require(token != address(0), "Pool deposit token not set");
+
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        shares = lendingPool.deposit(poolId, msg.sender, amount);
+    }
+
+    function withdrawDirect(PoolId poolId, uint256 shareAmount) external nonReentrant returns (uint256 amount) {
+        address token = poolDepositToken[poolId];
+        require(token != address(0), "Pool deposit token not set");
+
+        amount = lendingPool.withdraw(poolId, msg.sender, shareAmount);
+        IERC20(token).safeTransfer(msg.sender, amount);
+    }
+
+    // --- View functions ---
 
     function getPoolLendingState(PoolId poolId) external view returns (LendingPoolState memory) {
         return lendingPool.getPoolState(poolId);

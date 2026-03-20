@@ -2,14 +2,14 @@
 // Target chain: Unichain Sepolia (chainId 1301)
 
 export const CONTRACTS = {
-  onLoanHook:        '0x3CcC052E574E3a832FBB0CF426A449b885B1BFF0' as `0x${string}`,
-  lendingPool:       '0xD3ebBdbEB12C656B9743b94384999E0ff7010f36' as `0x${string}`,
-  loanManager:       '0xa9fD16FcD65304f2f00EfCe0c3517261e8504B46' as `0x${string}`,
-  collateralManager: '0xa97C9C8dD22db815a4AB3E3279562FD379F925c6' as `0x${string}`,
-  priceOracle:       '0x1106661FB7104CFbd35E8477796D8CD9fB3806f2' as `0x${string}`,
-  liquidationEngine: '0x9E2f28b4f68F01b4B56BEFc6047018362EBD91F6' as `0x${string}`,
-  receiptToken:      '0xEAE3b6033d744b8E0e817269df92004F3069bfB1' as `0x${string}`,
-  interestRateModel: '0xF2268d8133687e40AC174bCcA150677c42D74233' as `0x${string}`,
+  onLoanHook:        '0x6358d4C2d2AbA1aBca6Fe290AF9E744d37a07fF0' as `0x${string}`,
+  lendingPool:       '0x34d3c4f89d594F465f744b4f46cF81948Db0A660' as `0x${string}`,
+  loanManager:       '0x89Abddbe65452b61c8595002117c7f52b9C6d254' as `0x${string}`,
+  collateralManager: '0x5D7E254B613544E4083705430EB2C2B276DD681C' as `0x${string}`,
+  priceOracle:       '0x5f9A7a10ce0274de1Fcaeb68eEf76393A5454776' as `0x${string}`,
+  liquidationEngine: '0xC078178C19050Cf0a2f5e6A57Ac5CC6eb518140F' as `0x${string}`,
+  receiptToken:      '0x4236A66B6Cdb320b33F560b24135FE9B6948DF42' as `0x${string}`,
+  interestRateModel: '0xB76D52c1953EFB877FD519d7A3a830000c6dE69a' as `0x${string}`,
   riskEngine:        '0x1bdFc336373903E24BD46f8d22b14972f0fAEF83' as `0x${string}`,
   poolManager:       '0x000000000004444c5dc75cB358380D2e3dE08A90' as `0x${string}`,
 } as const;

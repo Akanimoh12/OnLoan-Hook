@@ -36,6 +36,11 @@
         "name": "_receiptToken",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "_owner",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
@@ -1367,5 +1372,29 @@
     "type": "error",
     "name": "ReentrancyGuardReentrantCall",
     "inputs": []
+  },
+  {
+    "type": "function",
+    "name": "depositDirect",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "internalType": "PoolId" },
+      { "name": "amount", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "shares", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawDirect",
+    "inputs": [
+      { "name": "poolId", "type": "bytes32", "internalType": "PoolId" },
+      { "name": "shareAmount", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "amount", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "nonpayable"
   }
 ]

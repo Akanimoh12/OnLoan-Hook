@@ -49,7 +49,7 @@ contract LendingPool is ILendingPool, Ownable, ReentrancyGuard {
         authorized[caller] = status;
     }
 
-    function initializePool(PoolId poolId, PoolConfig calldata config) external onlyHook {
+    function initializePool(PoolId poolId, PoolConfig calldata config) external onlyHookOrAuthorized {
         if (pools[poolId].lastUpdateTime != 0) revert PoolAlreadyInitialized();
         poolConfigs[poolId] = config;
         pools[poolId] = LendingPoolState({
@@ -63,7 +63,7 @@ contract LendingPool is ILendingPool, Ownable, ReentrancyGuard {
         emit Events.LendingPoolCreated(poolId, config.interestRateConfig.baseRate, 0);
     }
 
-    function deposit(PoolId poolId, address lender, uint256 amount) external onlyHook nonReentrant returns (uint256 shares) {
+    function deposit(PoolId poolId, address lender, uint256 amount) external onlyHookOrAuthorized nonReentrant returns (uint256 shares) {
         if (amount == 0) revert ZeroAmount();
         if (!poolConfigs[poolId].isActive) revert PoolNotActive();
 
@@ -85,7 +85,7 @@ contract LendingPool is ILendingPool, Ownable, ReentrancyGuard {
         emit Events.LenderDeposited(poolId, lender, amount, shares);
     }
 
-    function withdraw(PoolId poolId, address lender, uint256 shares) external onlyHook nonReentrant returns (uint256 amount) {
+    function withdraw(PoolId poolId, address lender, uint256 shares) external onlyHookOrAuthorized nonReentrant returns (uint256 amount) {
         if (shares == 0) revert ZeroAmount();
 
         LenderPosition storage pos = lenderPositions[poolId][lender];
