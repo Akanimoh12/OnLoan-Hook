@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
 import { Shell } from '@/components/layout/Shell';
-import { POOLS } from '@/lib/constants';
+import { POOLS, TOKENS } from '@/lib/constants';
 import { useDeposit } from '@/hooks/useDeposit';
 import { useWithdraw } from '@/hooks/useWithdraw';
 import { useUserShares } from '@/hooks/useUserShares';
@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { MockERC20Abi } from '@/lib/abis';
 
 export function Lend() {
   const { address } = useAccount();
@@ -25,6 +26,16 @@ export function Lend() {
   const { shares, isLoading: loadingShares } = useUserShares(POOLS.USDC);
   const { supplyRateBps, utilizationBps } = useInterestRates(POOLS.USDC);
   const { data: poolState, isLoading: loadingPool } = usePoolState(POOLS.USDC);
+
+  // Wallet USDC balance
+  const { data: usdcBalanceRaw, isLoading: loadingBalance } = useReadContract({
+    address: TOKENS.USDC.address,
+    abi: MockERC20Abi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    query: { enabled: Boolean(address), refetchInterval: 15_000 },
+  });
+  const usdcBalance = (usdcBalanceRaw as bigint) ?? 0n;
 
   const depParsed = parseAmountInput(depositAmt, 6);
   const wdParsed = parseAmountInput(withdrawAmt, 6);
@@ -101,7 +112,15 @@ export function Lend() {
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Amount to Supply</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-slate-300">Amount to Supply</label>
+                  {address && (
+                    <span className="text-xs text-slate-500">
+                      Balance:{' '}
+                      {loadingBalance ? '…' : formatTokenAmount(usdcBalance, 6, 'USDC')}
+                    </span>
+                  )}
+                </div>
                 <div className="relative">
                   <input 
                     type="number" 
