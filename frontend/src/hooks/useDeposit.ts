@@ -111,5 +111,3 @@ export function useDeposit(): UseDepositResult {
     depositError: fmtErr(depositWriteErr) ?? fmtErr(depositReceiptErr),
   };
 }
-  };
-}
