@@ -20,7 +20,7 @@ export function Lend() {
   const [depositAmt, setDepositAmt] = React.useState('');
   const [withdrawAmt, setWithdrawAmt] = React.useState('');
 
-  const { deposit, isPending: isDepositing, isApproving, error: depError } = useDeposit();
+  const { deposit, isPending: isDepositing, isApproving, isSuccess: depSuccess, error: depError } = useDeposit();
   const { withdraw, canWithdraw, isPending: isWithdrawing, error: wdError } = useWithdraw(POOLS.USDC);
   const { shares, isLoading: loadingShares } = useUserShares(POOLS.USDC);
   const { supplyRateBps, utilizationBps } = useInterestRates(POOLS.USDC);
@@ -120,14 +120,26 @@ export function Lend() {
 
               {depError && <ErrorMessage message={depError} />}
 
+              {depSuccess && (
+                <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-sm text-green-200">
+                  Deposit successful!
+                </div>
+              )}
+
               <Button 
                 className="w-full" 
                 size="lg"
-                disabled={!address || depParsed === 0n}
+                disabled={!address || depParsed === 0n || isDepositing || isApproving}
                 isLoading={isDepositing || isApproving}
                 onClick={() => address && deposit(POOLS.USDC, depParsed)}
               >
-                {!address ? 'Connect Wallet' : isApproving ? 'Approving USDC...' : 'Supply Assets'}
+                {!address
+                  ? 'Connect Wallet'
+                  : isApproving
+                    ? 'Approving USDC…'
+                    : isDepositing
+                      ? 'Depositing…'
+                      : 'Supply Assets'}
               </Button>
             </CardContent>
           </Card>
