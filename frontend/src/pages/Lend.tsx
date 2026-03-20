@@ -21,7 +21,10 @@ export function Lend() {
   const [depositAmt, setDepositAmt] = React.useState('');
   const [withdrawAmt, setWithdrawAmt] = React.useState('');
 
-  const { deposit, isPending: isDepositing, isApproving, isSuccess: depSuccess, error: depError } = useDeposit();
+  const {
+    allowance, approve, isApproving, isApproveConfirmed, approveError,
+    deposit, isDepositing, isDepositConfirmed, depositError,
+  } = useDeposit();
   const { withdraw, canWithdraw, isPending: isWithdrawing, error: wdError } = useWithdraw(POOLS.USDC);
   const { shares, isLoading: loadingShares } = useUserShares(POOLS.USDC);
   const { supplyRateBps, utilizationBps } = useInterestRates(POOLS.USDC);
@@ -137,29 +140,63 @@ export function Lend() {
                 </div>
               </div>
 
-              {depError && <ErrorMessage message={depError} />}
+              {/* Allowance info */}
+              {address && (
+                <div className="p-3 bg-slate-800/50 rounded-lg text-xs text-slate-400 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Approved allowance:</span>
+                    <span className="font-mono text-slate-300">{formatTokenAmount(allowance, 6, 'USDC')}</span>
+                  </div>
+                  {depParsed > 0n && (
+                    <div className="flex justify-between">
+                      <span>Status:</span>
+                      <span className={allowance >= depParsed ? 'text-green-400' : 'text-amber-400'}>
+                        {allowance >= depParsed ? 'Sufficient — ready to deposit' : 'Needs approval first'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
 
-              {depSuccess && (
+              {approveError && <ErrorMessage message={approveError} />}
+              {depositError && <ErrorMessage message={depositError} />}
+
+              {isApproveConfirmed && (
+                <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-sm text-green-200">
+                  Approval confirmed! You can now deposit.
+                </div>
+              )}
+
+              {isDepositConfirmed && (
                 <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-sm text-green-200">
                   Deposit successful!
                 </div>
               )}
 
-              <Button 
-                className="w-full" 
-                size="lg"
-                disabled={!address || depParsed === 0n || isDepositing || isApproving}
-                isLoading={isDepositing || isApproving}
-                onClick={() => address && deposit(POOLS.USDC, depParsed)}
-              >
-                {!address
-                  ? 'Connect Wallet'
-                  : isApproving
-                    ? 'Approving USDC…'
-                    : isDepositing
-                      ? 'Depositing…'
-                      : 'Supply Assets'}
-              </Button>
+              <div className="flex gap-3">
+                {/* Step 1: Approve button */}
+                <Button
+                  className="flex-1"
+                  size="lg"
+                  variant="secondary"
+                  disabled={!address || depParsed === 0n || isApproving || allowance >= depParsed}
+                  isLoading={isApproving}
+                  onClick={() => approve(depParsed)}
+                >
+                  {isApproving ? 'Approving…' : allowance >= depParsed && depParsed > 0n ? 'Approved ✓' : 'Approve USDC'}
+                </Button>
+
+                {/* Step 2: Deposit button */}
+                <Button
+                  className="flex-1"
+                  size="lg"
+                  disabled={!address || depParsed === 0n || isDepositing || allowance < depParsed}
+                  isLoading={isDepositing}
+                  onClick={() => deposit(POOLS.USDC, depParsed)}
+                >
+                  {isDepositing ? 'Depositing…' : 'Supply Assets'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

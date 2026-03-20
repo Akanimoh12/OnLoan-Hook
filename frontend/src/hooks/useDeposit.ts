@@ -1,87 +1,115 @@
-import { useState, useCallback } from 'react';
-import { useWriteContract, useReadContract, useAccount, usePublicClient } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract, useAccount } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { CONTRACTS, TOKENS, BLOCK_TIME_MS } from '@/lib/constants';
 import { OnLoanHookAbi, MockERC20Abi } from '@/lib/abis';
 
-type Step = 'idle' | 'approving' | 'depositing' | 'success';
-
 interface UseDepositResult {
-  deposit: (poolId: `0x${string}`, amount: bigint) => void;
-  isPending: boolean;
+  /** Current USDC allowance the hook contract can spend */
+  allowance: bigint;
+  /** Send an ERC-20 approve TX for `amount` */
+  approve: (amount: bigint) => void;
   isApproving: boolean;
-  isSuccess: boolean;
-  error: string | null;
+  isApproveConfirmed: boolean;
+  approveError: string | null;
+  /** Send the depositDirect TX */
+  deposit: (poolId: `0x${string}`, amount: bigint) => void;
+  isDepositing: boolean;
+  isDepositConfirmed: boolean;
+  depositError: string | null;
 }
 
 export function useDeposit(): UseDepositResult {
   const queryClient = useQueryClient();
   const { address } = useAccount();
-  const publicClient = usePublicClient();
-  const { writeContractAsync } = useWriteContract();
 
-  const [step, setStep] = useState<Step>('idle');
-  const [error, setError] = useState<string | null>(null);
-
-  // Read current allowance
-  const { data: allowance } = useReadContract({
+  // ---- Allowance read ----
+  const { data: allowanceRaw } = useReadContract({
     address: TOKENS.USDC.address,
     abi: MockERC20Abi,
     functionName: 'allowance',
     args: address ? [address, CONTRACTS.onLoanHook] : undefined,
-    query: {
-      enabled: Boolean(address),
-      refetchInterval: BLOCK_TIME_MS * 3,
-    },
+    query: { enabled: Boolean(address), refetchInterval: BLOCK_TIME_MS * 2 },
   });
+  const allowance = (allowanceRaw as bigint) ?? 0n;
 
-  const currentAllowance = (allowance as bigint) ?? 0n;
+  // ---- Approve TX (standalone) ----
+  const {
+    writeContract: writeApprove,
+    data: approveTxHash,
+    isPending: isApproveSending,
+    error: approveWriteErr,
+    reset: resetApprove,
+  } = useWriteContract();
 
-  const deposit = useCallback(async (poolId: `0x${string}`, amount: bigint) => {
-    if (amount === 0n || !publicClient) return;
-    setError(null);
+  const {
+    isLoading: isApproveMining,
+    isSuccess: isApproveConfirmed,
+    error: approveReceiptErr,
+  } = useWaitForTransactionReceipt({ hash: approveTxHash });
 
-    try {
-      // Step 1: Approve if needed
-      if (currentAllowance < amount) {
-        setStep('approving');
-        const approveHash = await writeContractAsync({
-          address: TOKENS.USDC.address,
-          abi: MockERC20Abi,
-          functionName: 'approve',
-          args: [CONTRACTS.onLoanHook, amount],
-        });
-        await publicClient.waitForTransactionReceipt({ hash: approveHash });
-      }
+  // Invalidate queries once approval lands so allowance refreshes
+  if (isApproveConfirmed) {
+    queryClient.invalidateQueries();
+  }
 
-      // Step 2: Deposit
-      setStep('depositing');
-      const depositHash = await writeContractAsync({
-        address: CONTRACTS.onLoanHook,
-        abi: OnLoanHookAbi,
-        functionName: 'depositDirect',
-        args: [poolId, amount],
-      });
-      await publicClient.waitForTransactionReceipt({ hash: depositHash });
+  const approve = (amount: bigint) => {
+    resetApprove();
+    writeApprove({
+      address: TOKENS.USDC.address,
+      abi: MockERC20Abi,
+      functionName: 'approve',
+      args: [CONTRACTS.onLoanHook, amount],
+    });
+  };
 
-      // Done
-      setStep('success');
-      queryClient.invalidateQueries();
-      setTimeout(() => setStep('idle'), 3000);
-    } catch (err: unknown) {
-      const msg = err instanceof Error && (err.message.includes('User rejected') || err.message.includes('User denied'))
-        ? 'Transaction rejected in wallet.'
-        : 'Deposit failed. Check your USDC balance and try again.';
-      setError(msg);
-      setStep('idle');
-    }
-  }, [currentAllowance, publicClient, writeContractAsync, queryClient]);
+  // ---- Deposit TX (standalone) ----
+  const {
+    writeContract: writeDeposit,
+    data: depositTxHash,
+    isPending: isDepositSending,
+    error: depositWriteErr,
+    reset: resetDeposit,
+  } = useWriteContract();
+
+  const {
+    isLoading: isDepositMining,
+    isSuccess: isDepositConfirmed,
+    error: depositReceiptErr,
+  } = useWaitForTransactionReceipt({ hash: depositTxHash });
+
+  if (isDepositConfirmed) {
+    queryClient.invalidateQueries();
+  }
+
+  const deposit = (poolId: `0x${string}`, amount: bigint) => {
+    resetDeposit();
+    writeDeposit({
+      address: CONTRACTS.onLoanHook,
+      abi: OnLoanHookAbi,
+      functionName: 'depositDirect',
+      args: [poolId, amount],
+    });
+  };
+
+  // ---- Error formatting ----
+  const fmtErr = (e: Error | null) => {
+    if (!e) return null;
+    if (e.message.includes('User rejected') || e.message.includes('User denied'))
+      return 'Transaction rejected in wallet.';
+    return e.message.length > 120 ? e.message.slice(0, 120) + '…' : e.message;
+  };
 
   return {
+    allowance,
+    approve,
+    isApproving: isApproveSending || isApproveMining,
+    isApproveConfirmed,
+    approveError: fmtErr(approveWriteErr) ?? fmtErr(approveReceiptErr),
     deposit,
-    isPending: step === 'depositing',
-    isApproving: step === 'approving',
-    isSuccess: step === 'success',
-    error,
+    isDepositing: isDepositSending || isDepositMining,
+    isDepositConfirmed,
+    depositError: fmtErr(depositWriteErr) ?? fmtErr(depositReceiptErr),
+  };
+}
   };
 }
